@@ -39,14 +39,7 @@ RFPrediction <- predict(RFModel, testingData, type = "class")
 
 confusionMatrix(RFPrediction, testingData$classe)
 
-##Prediction model 2 - random forest
-#From the result, it show Random Forest accuracy is higher than Decision tree which is 0.9915 > 0.6644. Therefore, we will use random forest to answer the assignment.
-
-predictionFinal <- predict(RFModel, testingData, type = "class")
-
-#------
-#testingData2 <- testing[, colSums(is.na(testingData)) == 0]
-#testingData2 <- testingData2[, -(1:7)]
+#It show Random Forest accuracy is higher than Decision tree which is 0.9991 > 0.7462. 
 
 #The predicted classes for the 20 tests 
 testingData2 <- testing
@@ -54,3 +47,7 @@ nzvt <- nearZeroVar(testingData2)
 testingData2 <- testingData2[, -nzvt]
 
 predictionTest <- predict(RFModel, testingData2)
+predictionTest
+
+###Conclusion
+#The Random Forest is a much better predictive model than the Decision Tree, which has a larger accuracy (99.91%).
