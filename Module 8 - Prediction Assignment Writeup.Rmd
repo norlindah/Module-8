@@ -1,0 +1,87 @@
+---
+title: "Prediction  Assignment Writeup"
+author: "Norlindah"
+date: "26 September 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+## Data
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+#Loading Library
+library(caret) 
+library(rpart.plot)
+library(ggplot2)
+library(randomForest)
+
+#Loading Data
+ 
+url.train <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+url.test <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+
+
+#Check the Training and Testing data, identifying the missing data, NA and #DIV/0! as NA everywhere.
+training <- read.csv(url(url.train), na.strings = c("NA", "", "#DIV0!"))
+testing <- read.csv(url(url.test), na.strings = c("NA", "", "#DIV0!"))
+
+#Cleaning the data
+training <- training[, colSums(is.na(training)) == 0]
+testing <- testing[, colSums(is.na(testing)) == 0]
+
+# Delete variables that are not related 
+trainingData <- training[, -c(1:7)]
+testingData <- testing[, -c(1:7)]
+
+PartitionData <- createDataPartition(trainingData$classe,  p = 0.7, list = F)
+trainingData <- trainingData[PartitionData, ]
+testingData <- trainingData[-PartitionData, ]
+```
+
+###Prediction Model 1 - Decision Tree 
+
+```{r}
+DTreeModel <- rpart(classe ~ ., data = trainingData, method = "class")
+DTreePrediction <- predict(DTreeModel, testingData, type = "class")
+```
+
+Plot Decision Tree
+```{r}
+rpart.plot(DTreeModel, main = "Decision Tree", under = T, faclen = 0)
+```
+
+Using confusion matrix to test results
+```{r}
+confusionMatrix(DTreePrediction, testingData$classe)
+```
+
+###Prediction model 2 - random forest
+```{r}
+RFModel <- randomForest(classe ~. , data = trainingData, method = "class")
+RFPrediction <- predict(RFModel, testingData, type = "class")
+
+confusionMatrix(RFPrediction, testingData$classe)
+```
+
+It show Random Forest accuracy is higher than Decision tree which is 0.9991 > 0.7462. 
+
+###The predicted classes for the 20 tests 
+```{r}
+testingData2 <- testing
+nzvt <- nearZeroVar(testingData2)
+testingData2 <- testingData2[, -nzvt]
+predictionTest <- predict(RFModel, testingData2)
+
+predictionTest
+```
+
+###Conclusion
+The Random Forest is a much better predictive model than the Decision Tree, which has a larger accuracy (99.91%).
+
